@@ -36,8 +36,8 @@ def predict_held_out_nodes(sp_graph, coord, predict_type='point_mu', fit_feems=T
 
 
     # get genotypes of test deme
-    g = sp_graph_test.genotypes
-    g[~np.isclose(sp_graph_test.genotypes, sp_graph_test.genotypes.astype(int))] = np.nan
+    g = sp_graph.genotypes
+    g[~np.isclose(g, g.astype(int))] = np.nan
     
     # predict
     if predict_type == 'point':
@@ -53,8 +53,8 @@ def predict_held_out_nodes(sp_graph, coord, predict_type='point_mu', fit_feems=T
         'w0': sp_graph_train.w0,
         's2': sp_graph_train.s2,
         'post_mean': post_mean, # compute posterior mean
-        'true_coord': sp_graph.sample_pos[~split],
-        'map_coord': sp_graph.node_pos[permuted_idx][z.argmax(1)]
+        'map_coord': sp_graph.node_pos[permuted_idx][z.argmax(1)],
+        'pred_idx': np.where(~split)[0]
     }
     return results
 
