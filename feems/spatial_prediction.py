@@ -18,7 +18,7 @@ def predict_held_out_nodes(sp_graph, coord, predict_type='point_mu', fit_feems=T
     
     # remove test demes from training
     n = sp_graph.sample_pos.shape[0]
-    split = ~np.isnan(coor.iloc[:, 0])
+    split = ~np.isnan(coord.iloc[:, 0])
     sp_graph_train, sp_graph_test = train_test_split(sp_graph, split)
     
 
