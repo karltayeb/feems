@@ -5,6 +5,58 @@ from .cross_validation import train_test_split
 import numpy as np
 from scipy.stats import norm
 
+
+def predict_held_out_nodes(sp_graph, coord, predict_type='point_mu', fit_feems=True, fit_kwargs={}):
+    sample_idx = query_node_attributes(sp_graph, 'sample_idx')
+    permuted_idx = query_node_attributes(sp_graph, "permuted_idx")
+
+    node2sample = {i: sample_idx[i] for i in range(len(sample_idx))}
+    obsnode2sample = {
+        k: v for k, v in node2sample.items() if len(v) > 0
+    }
+
+    sp_graph.fit_null_model()
+    
+    print('fit feems w/o observations @ node: {}'.format(node))
+    # deepcopy doesn't like sp_graph.factor...
+    sp_graph.factor = None
+    
+    # remove test demes from training
+    n = sp_graph.sample_pos.shape[0]
+    split = ~np.isnan(coor.iloc[:, 0])
+    sp_graph_train, sp_graph_test = train_test_split(sp_graph, split)
+    
+    
+    if fit_feems:
+        # TODO use fit_kwargs
+        # sp_graph_train.fit(**fit_kwargs)
+        sp_graph_train.fit(lamb=2., verbose=False)
+
+
+    # get genotypes of test deme
+    g = sp_graph_test.genotypes
+    g[~np.isclose(sp_graph_test.genotypes, sp_graph_test.genotypes.astype(int))] = np.nan
+    
+    # predict
+    if predict_type == 'point':
+        z, post_mean = predict_deme_point_mu(g, sp_graph_train)
+
+    # predict
+    if predict_type == 'trunc':
+        z, post_mean = predict_deme_trunc_normal_mu(g, sp_graph_train)
+
+    results = {
+        'post_assignment': z,
+        'w': sp_graph_train.w,
+        'w0': sp_graph_train.w0,
+        's2': sp_graph_train.s2,
+        'post_mean': post_mean, # compute posterior mean
+        'true_coord': sp_graph.sample_pos[sample_idx[node]],
+        'map_coord': sp_graph.node_pos[permuted_idx][z.argmax(1)]
+    }
+    return results
+
+
 def leave_node_out_spatial_prediction(sp_graph, predict_type='point_mu', fit_feems=True, fit_kwargs={}, max_nodes=500):
     sample_idx = query_node_attributes(sp_graph, 'sample_idx')
     permuted_idx = query_node_attributes(sp_graph, "permuted_idx")
@@ -14,8 +66,8 @@ def leave_node_out_spatial_prediction(sp_graph, predict_type='point_mu', fit_fee
         k: v for k, v in node2sample.items() if len(v) > 0
     }
     sp_graph.fit_null_model()
-
     results = {}
+
     for node, samples in list(obsnode2sample.items())[:max_nodes]:
         print('fit feems w/o observations @ node: {}'.format(node))
         # deepcopy doesn't like sp_graph.factor...
@@ -39,11 +91,11 @@ def leave_node_out_spatial_prediction(sp_graph, predict_type='point_mu', fit_fee
         
         # predict
         if predict_type == 'point':
-            z = predict_deme_point_mu(g, sp_graph_train)
+            z, post_mean = predict_deme_point_mu(g, sp_graph_train)
 
         # predict
         if predict_type == 'trunc':
-            z = predict_deme_trunc_normal_mu(g, sp_graph_train)
+            z, post_mean = predict_deme_trunc_normal_mu(g, sp_graph_train)
 
         sp_graph_train.factor = None
 
@@ -53,7 +105,7 @@ def leave_node_out_spatial_prediction(sp_graph, predict_type='point_mu', fit_fee
             'w': sp_graph_train.w,
             'w0': sp_graph_train.w0,
             's2': sp_graph_train.s2,
-            'post_mean': 0 # compute posterior mean
+            #'post_mean': post_mean, # compute posterior mean
             'true_coord': sp_graph.sample_pos[sample_idx[node]],
             'map_coord': sp_graph.node_pos[permuted_idx][z.argmax(1)]
         }
@@ -142,13 +194,13 @@ def predict_deme_point_mu(g, sp_graph_train):
     # get genotype from sp_graph_test
     post_mean, _ = _compute_frequency_posterior(g, sp_graph_train)
     z = _compute_assignment_probabilities_point_mu(g, post_mean)
-    return z
+    return z, post_mean
 
 def predict_deme_trunc_normal_mu(g, sp_graph_train):
     # get genotype from sp_graph_test
     post_mean, post_var = _compute_frequency_posterior(g, sp_graph_train, compute_var=True)
     z = _compute_assignment_probabilities_trunc_normal(g, post_mean, post_var)
-    return z
+    return z, post_mean
 
 def predict_deme_beta_mu(sp_graph_train, sp_graph_test):
     pass
