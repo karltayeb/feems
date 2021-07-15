@@ -27,7 +27,7 @@ def predict_held_out_nodes(sp_graph, coord, predict_type='point_mu', fit_feems=T
         for i in range(len(test_sample_idx))
         if len(test_sample_idx[i]) > 0}
     test_nodes = list(test_node2sample.keys())
-    print('fit feems w/o observations @ node: {}'.format(nodes))
+    print('fit feems w/o observations @ node: {}'.format(test_nodes))
     
     if fit_feems:
         # TODO use fit_kwargs
