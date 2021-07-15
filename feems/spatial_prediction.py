@@ -10,14 +10,9 @@ def predict_held_out_nodes(sp_graph, coord, predict_type='point_mu', fit_feems=T
     sample_idx = query_node_attributes(sp_graph, 'sample_idx')
     permuted_idx = query_node_attributes(sp_graph, "permuted_idx")
 
-    node2sample = {i: sample_idx[i] for i in range(len(sample_idx))}
-    obsnode2sample = {
-        k: v for k, v in node2sample.items() if len(v) > 0
-    }
 
     sp_graph.fit_null_model()
     
-    print('fit feems w/o observations @ node: {}'.format(node))
     # deepcopy doesn't like sp_graph.factor...
     sp_graph.factor = None
     
@@ -26,6 +21,13 @@ def predict_held_out_nodes(sp_graph, coord, predict_type='point_mu', fit_feems=T
     split = ~np.isnan(coor.iloc[:, 0])
     sp_graph_train, sp_graph_test = train_test_split(sp_graph, split)
     
+
+    test_sample_idx = query_node_attributes(sp_graph_test, 'sample_idx')
+    test_node2sample = {i: test_sample_idx[i]
+        for i in range(len(test_sample_idx))
+        if len(test_sample_idx[i]) > 0}
+    test_nodes = list(test_node2sample.keys())
+    print('fit feems w/o observations @ node: {}'.format(nodes))
     
     if fit_feems:
         # TODO use fit_kwargs
