@@ -32,7 +32,7 @@ def predict_held_out_nodes(sp_graph, coord, predict_type='point_mu', fit_feems=T
     if fit_feems:
         # TODO use fit_kwargs
         # sp_graph_train.fit(**fit_kwargs)
-        sp_graph_train.fit(lamb=2., verbose=False)
+        sp_graph_train.fit(lamb=2., verbose=True)
 
 
     # get genotypes of test deme
@@ -53,7 +53,7 @@ def predict_held_out_nodes(sp_graph, coord, predict_type='point_mu', fit_feems=T
         'w0': sp_graph_train.w0,
         's2': sp_graph_train.s2,
         'post_mean': post_mean, # compute posterior mean
-        'true_coord': sp_graph.sample_pos[sample_idx[node]],
+        'true_coord': sp_graph.sample_pos[~split],
         'map_coord': sp_graph.node_pos[permuted_idx][z.argmax(1)]
     }
     return results
