@@ -12,7 +12,7 @@ from .objective import Objective, loss_wrapper, neg_log_lik_w0_s2
 
 
 class SpatialGraph(nx.Graph):
-    def __init__(self, genotypes, sample_pos, node_pos, edges, scale_snps=True):
+    def __init__(self, genotypes, sample_pos, node_pos, edges, scale_snps=True, verbose_init=False):
         """Represents the spatial network which the data is defined on and
         stores relevant matrices / performs linear algebra routines needed for
         the model and optimization. Inherits from the networkx Graph object.
@@ -44,6 +44,8 @@ class SpatialGraph(nx.Graph):
         self.scale_snps = scale_snps
 
         # signed incidence_matrix
+        if verbose_init:
+            print('buidling incidence matrix...')
         self.Delta_q = nx.incidence_matrix(self, oriented=True).T.tocsc()
 
         # track nonzero edges upper triangular
@@ -56,6 +58,8 @@ class SpatialGraph(nx.Graph):
         # vectorization operator on the edges
         self.diag_oper = self._create_vect_matrix()
 
+        if verbose_init:
+            print('assigning samples to nodes...')
         self._assign_samples_to_nodes(sample_pos, node_pos)  # assn samples
         self._permute_nodes()  # permute nodes
         n_samples_per_node = query_node_attributes(self, "n_samples")
@@ -74,6 +78,9 @@ class SpatialGraph(nx.Graph):
 
         # estimate allele frequencies at observed locations (in permuted order)
         self.genotypes = genotypes
+
+        if verbose_init:
+            print('estimating allele frequencies...')
         self._estimate_allele_frequencies()
 
         if scale_snps:
@@ -83,6 +90,8 @@ class SpatialGraph(nx.Graph):
         # compute precision
         self.comp_precision(s2=1)
 
+        if verbose_init:
+            print('estimating sample covariance matrix...')
         # estimate sample covariance matrix
         self.S = self.frequencies @ self.frequencies.T / self.n_snps
 
