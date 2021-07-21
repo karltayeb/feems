@@ -48,11 +48,11 @@ def predict_held_out_nodes(sp_graph, coord, predict_type='point_mu', fit_feems=T
         z, post_mean = predict_deme_trunc_normal_mu(g, sp_graph_train)
 
     results = {
-        'post_assignment': z,
+        'post_assignment': z[~split],
         'w': sp_graph_train.w,
         'w0': sp_graph_train.w0,
         's2': sp_graph_train.s2,
-        'post_mean': post_mean, # compute posterior mean
+        #'post_mean': post_mean, # compute posterior mean
         'map_coord': sp_graph.node_pos[permuted_idx][z.argmax(1)],
         'pred_idx': np.where(~split)[0]
     }
