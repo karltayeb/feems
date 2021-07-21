@@ -54,7 +54,8 @@ def predict_held_out_nodes(sp_graph, coord, predict_type='point_mu', fit_feems=T
         's2': sp_graph_train.s2,
         #'post_mean': post_mean, # compute posterior mean
         'map_coord': sp_graph.node_pos[permuted_idx][z.argmax(1)],
-        'pred_idx': np.where(~split)[0]
+        'pred_idx': np.where(~split)[0],
+        'test_nodes': test_nodes
     }
     return results
 
