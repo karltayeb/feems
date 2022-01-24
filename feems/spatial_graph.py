@@ -205,6 +205,31 @@ class SpatialGraph(nx.Graph):
         vect_idx_c = col + len(self) * row
         self.P = self.diag_oper[:, vect_idx_r] + self.diag_oper[:, vect_idx_c]
 
+    def subset_snps(self, n):
+        """
+        take random subset of n SNPs
+        """
+        assert(n <= self.genotype.shape[1])
+
+        # redo initialization with new genotype
+        subset = np.random.choice(n, snakemake.params.n, replace=False)
+        self.genotypes = self.genotypes[:, subset]
+        if verbose_init:
+            print('estimating allele frequencies...')
+        self._estimate_allele_frequencies()
+
+        if scale_snps:
+            self.mu = self.frequencies.mean(axis=0) / 2
+            self.frequencies = self.frequencies / np.sqrt(self.mu * (1 - self.mu))
+
+        # compute precision
+        self.comp_precision(s2=1)
+
+        if verbose_init:
+            print('estimating sample covariance matrix...')
+        # estimate sample covariance matrix
+        self.S = self.frequencies @ self.frequencies.T / self.n_snps
+
     def inv_triu(self, w, perm=True):
         """Take upper triangular vector as input and return symmetric weight
         sparse matrix
