@@ -121,3 +121,15 @@ Breifly :
 - `predict_deme_point_mu` and `predict_deme_trunc_normal_mu` wrap the `_compute_assignment_{method}` functions, return the posterior assignments AND posterior mean of allele frequencies. If you do not provide a prior over demes we assume individuals are sampled with equal probability from all demes.
 - `leave_node_out_spatial_prediction` and `predict_held_out_samples` are high level functions for testing the spatial prediction using samples with known sampling lcoation.
 
+
+And a minimal example of how you might use this is:
+
+```
+from feems.spatial_prediction import predict_deme_point_mu
+
+genotypes = # load genotypes you want to perform spatial assignment with
+z, post_mean = predict_deme_point_mu(genotypes, sp_graph)  # sp_graph is a fit femes model
+
+# z is a sample x deme matrix of (log) assignment probabilities
+# post_mean is a SNP x deme matrix posterior allele frequencies
+```
